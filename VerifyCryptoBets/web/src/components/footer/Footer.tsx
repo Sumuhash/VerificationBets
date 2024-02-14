@@ -71,7 +71,7 @@ export default function Footer() {
             EXPERIENCES
             <NavbarLink href="/buy-me-coffee">
               <span className="flex items-center gap-1 px-2">
-                Buy Me Coffee <ArrowTopRightIcon width="16" height="16" />
+                Verify Crypto Bets <ArrowTopRightIcon width="16" height="16" />
               </span>
             </NavbarLink>
             <NavbarLink href="/mint">

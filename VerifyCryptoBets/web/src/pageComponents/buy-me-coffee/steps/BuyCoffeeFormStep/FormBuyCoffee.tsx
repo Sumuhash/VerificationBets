@@ -5,7 +5,7 @@ import { RefetchOptions, QueryObserverResult } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ReadContractErrorType, TransactionExecutionError, parseEther } from 'viem';
 import { useSimulateContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-
+import { useAccount } from 'wagmi';
 import Button from '../../../../components/Button/Button';
 import { useBuyMeACoffeeContract } from '../../../../hooks/contracts';
 import { useLoggedInUserCanAfford } from '../../../../hooks/useUserCanAfford';
@@ -24,7 +24,7 @@ type FormBuyCoffeeProps = {
       readonly {
         numCoffees: bigint;
         userName: string;
-        twitterHandle: string;
+        expireDateHandle: string;
         message: string;
         time: bigint;
         userAddress: `0x${string}`;
@@ -46,14 +46,12 @@ function FormBuyCoffee({
 }: FormBuyCoffeeProps) {
   // Component state
   const [name, setName] = useState('');
-  const [twitterHandle, setTwitterHandle] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [expireDate, setExpireDateHandle] = useState('');
   const [message, setMessage] = useState('');
   const [buyCoffeeAmount, setBuyCoffeeAmount] = useState(BUY_COFFEE_AMOUNT_RAW);
   const [dataHash, setDataHash] = useState<string | undefined>();
 
-  useEffect(() => {
-    setBuyCoffeeAmount(BUY_COFFEE_AMOUNT_RAW * numCoffees);
-  }, [numCoffees]);
 
   // Get the correct contract info for current network (if present)
   const contract = useBuyMeACoffeeContract();
@@ -65,12 +63,16 @@ function FormBuyCoffee({
     await refetchMemos();
   }, [refetchMemos]);
 
+  const {address, addresses} = useAccount()
+  console.log(address)
+  console.log(addresses)
+
   // Wagmi Write call
   const { data: buyCoffeeData } = useSimulateContract({
     address: contract.status === 'ready' ? contract.address : undefined,
     abi: contract.abi,
     functionName: 'buyCoffee',
-    args: [BigInt(numCoffees), name, twitterHandle, message],
+    //args: [address, BigInt(quantity), expireDate ],
     query: {
       enabled: name !== '' && message !== '' && contract.status === 'ready',
     },
@@ -97,7 +99,8 @@ function FormBuyCoffee({
         await handleOncomplete();
         setDataHash('');
         setName('');
-        setTwitterHandle('');
+        setQuantity('')
+        setExpireDateHandle('');
         setMessage('');
         if (
           errorBuyMeACoffee instanceof TransactionExecutionError &&
@@ -111,7 +114,8 @@ function FormBuyCoffee({
         await handleOncomplete();
         setDataHash('');
         setName('');
-        setTwitterHandle('');
+        setQuantity('')
+        setExpireDateHandle('');
         setMessage('');
         setTransactionStep(TransactionSteps.TRANSACTION_COMPLETE_STEP);
       }
@@ -147,11 +151,18 @@ function FormBuyCoffee({
     [setName],
   );
 
-  const handleTwitterHandleChange = useCallback(
+
+  const handleQuantityChange = useCallback(
     (event: { target: { value: React.SetStateAction<string> } }) => {
-      setTwitterHandle(event.target.value);
+      setName(event.target.value);
     },
-    [setTwitterHandle],
+    [setName],
+  );
+  const handleExpireDateHandleChange = useCallback(
+    (event: { target: { value: React.SetStateAction<string> } }) => {
+      setExpireDateHandle(event.target.value);
+    },
+    [setExpireDateHandle],
   );
 
   const handleMessageChange = useCallback(
@@ -216,32 +227,26 @@ function FormBuyCoffee({
       {transactionStep === null && (
         <>
           <h2 className="mb-5 w-full text-center text-2xl font-semibold text-white lg:text-left">
-            Buy Me a Coffee!
+            Verify Crypto Bets!
           </h2>
           <form onSubmit={handleSubmit} className="w-full">
-            <div className="my-4 items-center lg:flex lg:gap-4">
-              <div className="text-center text-4xl lg:text-left">☕</div>
-              <div className="mb-4 mt-2 text-center font-sans text-xl lg:my-0 lg:text-left">X</div>
-              <div className="mx-auto flex max-w-[300px] gap-3 lg:max-w-max">
-                {NUMBER_OF_COFFEES.map((numberCoffee) => {
-                  return (
-                    <button
-                      key={`num-coffee-btn-${numberCoffee}`}
-                      type="button"
-                      className={clsx(
-                        `${
-                          numCoffees === numberCoffee
-                            ? 'bg-gradient-2'
-                            : 'border border-boat-color-orange'
-                        } block h-[40px] w-full rounded lg:w-[40px]`,
-                      )}
-                      // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
-                      onClick={() => setNumCoffees(numberCoffee)}
-                    >
-                      {numberCoffee}
-                    </button>
-                  );
-                })}
+            <div>
+              <div className="mb-5">
+                <label htmlFor="name" className="mb-2 block text-sm font-medium text-white">
+                  Quantity Threshold
+                </label>
+                <input
+                  type="text"
+                  id="quantity"
+                  className={clsx([
+                    'block w-full rounded-lg border border-gray-600 bg-boat-color-gray-900',
+                    'p-2 text-sm text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500',
+                  ])}
+                  placeholder="Quantity"
+                  onChange={handleQuantityChange}
+                  disabled={formDisabled}
+                  required
+                />
               </div>
             </div>
 
@@ -266,20 +271,20 @@ function FormBuyCoffee({
 
               <div className="mb-5">
                 <label
-                  htmlFor="twitterHandle"
+                  htmlFor="expireDateHandle"
                   className="mb-2 block text-sm font-medium text-white"
                 >
-                  Twitter handle (Optional)
+                  Expire Date
                 </label>
                 <input
                   type="text"
-                  id="twitterHandle"
+                  id="expireDateHandle"
                   className={clsx([
                     'block w-full rounded-lg border border-gray-600 bg-boat-color-gray-900',
                     'p-2 text-sm text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500',
                   ])}
                   placeholder="@"
-                  onChange={handleTwitterHandleChange}
+                  onChange={handleExpireDateHandleChange}
                   disabled={formDisabled}
                 />
               </div>
