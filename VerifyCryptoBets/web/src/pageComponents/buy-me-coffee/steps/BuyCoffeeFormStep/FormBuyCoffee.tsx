@@ -35,7 +35,6 @@ type FormBuyCoffeeProps = {
 };
 
 const BUY_COFFEE_AMOUNT_RAW = 0.0001;
-const NUMBER_OF_COFFEES = [1, 2, 3, 4];
 
 function FormBuyCoffee({
   setTransactionStep,
@@ -45,7 +44,6 @@ function FormBuyCoffee({
   refetchMemos,
 }: FormBuyCoffeeProps) {
   // Component state
-  const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [expireDate, setExpireDateHandle] = useState('');
   const [message, setMessage] = useState('');
@@ -64,17 +62,18 @@ function FormBuyCoffee({
   }, [refetchMemos]);
 
   const {address, addresses} = useAccount()
-  console.log(address)
-  console.log(addresses)
 
+  const milisecondDate = Date.parse(expireDate)
+  console.log(quantity, address, expireDate, milisecondDate, message)
+  console.log(parseFloat(quantity))
   // Wagmi Write call
   const { data: buyCoffeeData } = useSimulateContract({
     address: contract.status === 'ready' ? contract.address : undefined,
     abi: contract.abi,
     functionName: 'buyCoffee',
-    //args: [address, BigInt(quantity), expireDate ],
+    //args: [address, parseFloat(quantity), milisecondDate ],
     query: {
-      enabled: name !== '' && message !== '' && contract.status === 'ready',
+      enabled: message !== '' && contract.status === 'ready',
     },
     value: parseEther(String(buyCoffeeAmount)),
   });
@@ -98,7 +97,6 @@ function FormBuyCoffee({
       if (transactionStatus === 'error' && dataHash !== '') {
         await handleOncomplete();
         setDataHash('');
-        setName('');
         setQuantity('')
         setExpireDateHandle('');
         setMessage('');
@@ -113,7 +111,6 @@ function FormBuyCoffee({
       } else if (transactionStatus === 'success' && dataHash !== '') {
         await handleOncomplete();
         setDataHash('');
-        setName('');
         setQuantity('')
         setExpireDateHandle('');
         setMessage('');
@@ -144,19 +141,12 @@ function FormBuyCoffee({
     [buyCoffeeData?.request, buyMeACoffee, dataBuyMeACoffee, setTransactionStep],
   );
 
-  const handleNameChange = useCallback(
-    (event: { target: { value: React.SetStateAction<string> } }) => {
-      setName(event.target.value);
-    },
-    [setName],
-  );
-
 
   const handleQuantityChange = useCallback(
     (event: { target: { value: React.SetStateAction<string> } }) => {
-      setName(event.target.value);
+      setQuantity(event.target.value);
     },
-    [setName],
+    [setQuantity],
   );
   const handleExpireDateHandleChange = useCallback(
     (event: { target: { value: React.SetStateAction<string> } }) => {
@@ -179,11 +169,10 @@ function FormBuyCoffee({
   const submitButtonContent = useMemo(() => {
     return (
       <>
-        Send {numCoffees} coffee{numCoffees > 1 ? 's' : null} for{' '}
-        {String(buyCoffeeAmount.toFixed(4))} ETH
+        Send Verification {String(buyCoffeeAmount.toFixed(4))} ETH
       </>
     );
-  }, [buyCoffeeAmount, numCoffees]);
+  }, [buyCoffeeAmount]);
 
   const warningContent = useMemo(() => {
     if (contract.status === 'notConnected') {
@@ -232,11 +221,11 @@ function FormBuyCoffee({
           <form onSubmit={handleSubmit} className="w-full">
             <div>
               <div className="mb-5">
-                <label htmlFor="name" className="mb-2 block text-sm font-medium text-white">
+                <label htmlFor="quantity" className="mb-2 block text-sm font-medium text-white">
                   Quantity Threshold
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   id="quantity"
                   className={clsx([
                     'block w-full rounded-lg border border-gray-600 bg-boat-color-gray-900',
@@ -244,31 +233,15 @@ function FormBuyCoffee({
                   ])}
                   placeholder="Quantity"
                   onChange={handleQuantityChange}
+                  step={0.001}
                   disabled={formDisabled}
+
                   required
                 />
               </div>
             </div>
 
             <div>
-              <div className="mb-5">
-                <label htmlFor="name" className="mb-2 block text-sm font-medium text-white">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  className={clsx([
-                    'block w-full rounded-lg border border-gray-600 bg-boat-color-gray-900',
-                    'p-2 text-sm text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500',
-                  ])}
-                  placeholder="Name"
-                  onChange={handleNameChange}
-                  disabled={formDisabled}
-                  required
-                />
-              </div>
-
               <div className="mb-5">
                 <label
                   htmlFor="expireDateHandle"
@@ -277,13 +250,12 @@ function FormBuyCoffee({
                   Expire Date
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   id="expireDateHandle"
                   className={clsx([
                     'block w-full rounded-lg border border-gray-600 bg-boat-color-gray-900',
                     'p-2 text-sm text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500',
                   ])}
-                  placeholder="@"
                   onChange={handleExpireDateHandleChange}
                   disabled={formDisabled}
                 />
@@ -316,7 +288,7 @@ function FormBuyCoffee({
                 </div>
               ) : null}
 
-              <Button buttonContent={submitButtonContent} type="submit" disabled={formDisabled} />
+              <Button buttonContent={submitButtonContent} type="submit" disabled={formDisabled || !expireDate || quantity == "" || quantity == "0"} />
             </div>
           </form>
         </>
