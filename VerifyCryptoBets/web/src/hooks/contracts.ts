@@ -65,7 +65,7 @@ export const useBuyMeACoffeeContract = generateContractHook({
   abi: BuyMeACoffeeABI,
   [baseSepolia.id]: {
     chain: baseSepolia,
-    address: '0x914cbf51b5fe9c1944365b4a3541d4476e001f35',
+    address: '0x914CBF51b5FE9C1944365B4a3541D4476E001F35',
   },
 
   // ... more chains for this contract go here
