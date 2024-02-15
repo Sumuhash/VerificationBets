@@ -119,6 +119,48 @@ const abi = [
     type: 'function',
   },
   { stateMutability: 'payable', type: 'receive' },
+  {
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "quantity",
+        type: "uint256"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "expireDate",
+        type: "uint256"
+      }
+    ],
+    name: 'CommitmentPosted',
+    type: 'event',
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "quantity",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "expireDate",
+        type: "uint256"
+      }
+    ],
+      name: "postCommitment",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function"
+  }
 ] as const;
 
 export default abi;

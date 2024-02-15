@@ -14,6 +14,7 @@ import OutOfGasStep from '../OutOfGasStep';
 import StartTransactionStep from '../StartTransactionStep';
 import TransactionCompleteStep from '../TransactionCompleteStep';
 
+
 type FormBuyCoffeeProps = {
   setTransactionStep: React.Dispatch<React.SetStateAction<TransactionSteps | null>>;
   numCoffees: number;
@@ -50,6 +51,7 @@ function FormBuyCoffee({
   const [buyCoffeeAmount, setBuyCoffeeAmount] = useState(BUY_COFFEE_AMOUNT_RAW);
   const [dataHash, setDataHash] = useState<string | undefined>();
 
+  const { writeContract } = useWriteContract()
 
   // Get the correct contract info for current network (if present)
   const contract = useBuyMeACoffeeContract();
@@ -67,17 +69,16 @@ function FormBuyCoffee({
   console.log(quantity, address, expireDate, milisecondDate, message)
   console.log(parseFloat(quantity))
   // Wagmi Write call
-  const { data: buyCoffeeData } = useSimulateContract({
-    address: contract.status === 'ready' ? contract.address : undefined,
-    abi: contract.abi,
-    functionName: 'buyCoffee',
-    //args: [address, parseFloat(quantity), milisecondDate ],
-    query: {
-      enabled: message !== '' && contract.status === 'ready',
-    },
-    value: parseEther(String(buyCoffeeAmount)),
-  });
+  console.log([address, parseFloat(quantity), milisecondDate] )
 
+  // const { data: buyCoffeeData, error } = useSimulateContract({
+  //   address: contract.status === 'ready' ? contract.address : undefined,
+  //   abi: contract.abi,
+  //   functionName: 'postCommitment',
+  //   args: [parseFloat(quantity), milisecondDate ],
+  //   value: parseEther(String(buyCoffeeAmount)),
+  // });
+  // console.log({ buyCoffeeData, error  })
   const {
     writeContract: buyMeACoffee,
     data: dataBuyMeACoffee,
@@ -130,15 +131,26 @@ function FormBuyCoffee({
   const handleSubmit = useCallback(
     (event: { preventDefault: () => void }) => {
       event.preventDefault();
-      if (buyCoffeeData?.request) {
-        buyMeACoffee?.(buyCoffeeData?.request);
+
+      if (quantity != "") {
+        console.log('here2')
+        //buyMeACoffee?.(buyCoffeeData?.request);
+        writeContract({ 
+          abi: contract.abi,
+          address: '0x914CBF51b5FE9C1944365B4a3541D4476E001F35',
+          functionName: 'postCommitment',
+          args: [
+            quantity,
+            expireDate
+          ],
+       })
         setTransactionStep(TransactionSteps.START_TRANSACTION_STEP);
         setDataHash(dataBuyMeACoffee);
       } else {
         setTransactionStep(null);
       }
     },
-    [buyCoffeeData?.request, buyMeACoffee, dataBuyMeACoffee, setTransactionStep],
+    [ buyMeACoffee, dataBuyMeACoffee, setTransactionStep, quantity],
   );
 
 
